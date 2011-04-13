@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang=nl>
+<head>
+<meta charset=utf-8>
+
+<title>Async javascript load test</title>
+
+<script>
+__loading = ['-'];
+__scripts = [{code: []}];
+__loaded  = [];
+
+function needs(deps, name, code) {
+  console.log('loading '+name);
+
+  var r = function() {
+    for (i = 0; i < deps.length; ++i) {
+      if (window.__loaded.indexOf(deps[i]) == -1) {
+        return false;
+      }
+    }
+
+    code();
+
+    window.__loaded[window.__loaded.length] = name;
+
+    var s = window.__scripts[window.__loading.indexOf(name)];
+
+    for (j = 0; j < s.code.length; ++j) {
+      s.code[j]();
+    }
+
+    return true;
+  };
+
+  if (!r()) {
+    for (i = 0; i < deps.length; ++i) {
+      var n = window.__loading.indexOf(deps[i]);
+
+      if (n == -1) {
+        n = window.__loading.length;
+        window.__loading[n] = deps[i];
+
+        (function() {
+          var li = i;
+
+          var s = window.__scripts[n] = document.createElement('script');
+          s.async  = 1;
+          s.src    = deps[li];
+          s.code   = [r];
+          var p = document.getElementsByTagName('script')[0];
+          p.parentNode.insertBefore(s, p);
+        })();
+      } else {
+        window.__scripts[n].code[window.__scripts[n].code.length] = r;
+      }
+    }
+  }
+}
+
+needs(
+  ['script-1.js', 'script-2.js', 'script-3.js'].sort(function() { return Math.random() > 0.5; }), // shuffle the order in wich the script elements are added
+  '-',
+  function() {
+    // optional code here
+  }
+);
+</script>
+
+</head>
+<body>
+Async javascript load test. Check the console log.
+</body>
+</html>
