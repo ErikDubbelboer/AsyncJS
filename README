@@ -3,5 +3,5 @@ This is a small test of async loading and parsing of javascript files.
 
 Each file that is loaded states it's dependencies and has all code in a function. This way all javascript files can be loaded and parsed at the same time. Because all the actual code is in a function, the execution of the code can be done when all dependencies are executed first.
 
-One problem with this is that all the javascript files need to call the need() function in order for it to work. So libaries need to be adjusted for this.
+It now works with external scripts (which don't call our needs() function), problem is that external scripts can't have external scripts as dependencies yet. This can be fixed but requires some rewriting.
 

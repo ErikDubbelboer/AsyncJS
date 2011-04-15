@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang=nl>
+<html>
 <head>
 <meta charset=utf-8>
 
@@ -45,9 +45,24 @@ function needs(deps, name, code) {
           var li = i;
 
           var s = window.__scripts[n] = document.createElement('script');
-          s.async  = 1;
-          s.src    = deps[li];
-          s.code   = [r];
+          s.async = 1;
+          s.code  = [r];
+
+          if (deps[li] == 'mootools') {
+            // mootools doesn't call our needs() function so we need to give it an onload
+            s.src = '//ajax.googleapis.com/ajax/libs/mootools/1.3.1/mootools-yui-compressed.js';
+            s.onload = function() {
+              console.log('mootools loaded');
+
+              window.__loaded[window.__loaded.length] = deps[li];
+
+              for (j = 0; j < s.code.length; ++j) {
+                s.code[j]();
+              }
+            };
+          } else {
+            s.src = deps[li];
+          }
           var p = document.getElementsByTagName('script')[0];
           p.parentNode.insertBefore(s, p);
         })();
@@ -59,7 +74,10 @@ function needs(deps, name, code) {
 }
 
 needs(
-  ['script-1.js', 'script-2.js', 'script-3.js'].sort(function() { return Math.random() > 0.5; }), // shuffle the order in wich the script elements are added
+  // we can just load script-3 and let it loads it's dependencies
+  //['script-3.js'],
+  // or even faster is loading all of the scripts here since then they will all start at the same time
+  ['mootools', 'script-1.js', 'script-2.js', 'script-3.js'].sort(function() { return Math.random() > 0.5; }), // shuffle the order in wich the script elements are added to show they are still executed in the right order
   '-',
   function() {
     // optional code here
